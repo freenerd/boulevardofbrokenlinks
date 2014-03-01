@@ -5,12 +5,12 @@ Fetch a URL, parse all hyperlinks from the returned HTML and check each hyperlin
 
 ## TODO
 
-Homepage
-Connect with Github (because this is only supposed to be for jekyll blogs)
-Token for github callback (or better: automatic setup after connection)
-WaitGroups to figure out, when a site has been fully crawled
-Do some buffering, if people deploy often, they should only get an email every X minutes
-unsubscribe link in the emails
+* Homepage
+* Connect with Github (because this is only supposed to be for jekyll blogs)
+* Token for github callback (or better: automatic setup after connection)
+* WaitGroups to figure out, when a site has been fully crawled
+* Do some buffering, if people deploy often, they should only get an email every X minutes
+* unsubscribe link in the emails
 
 ## Caveats
 
