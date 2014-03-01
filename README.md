@@ -1,10 +1,47 @@
 # Boulevard Of Broken Links
 ## What?
 
-Fetch a URL, parse all hyperlinks from the returned HTML and check each hyperlinks status. Collect all broken links (http status >= 400) and send an email to owner about it.
+Fetch a URL, parse all hyperlinks from the returned HTML and check each hyperlinks status. Collect all broken links (http status >= 400) and send an email to owner about it. Triggered via webhook.
+
+Example email:
+
+```
+http://freenerd.de/: 404 http://www.freenerd.de/hackhpi/
+http://freenerd.de/: 503 http://takesquestions.com/
+http://freenerd.de/: 403 http://bcn.musichackday.org/2012/
+```
+
+## Installation
+
+* Install `go`
+* `go get github.com/freenerd/boulevardofbrokenlinks`
+
+## Run
+
+```
+CHECK_URL=http://www.freenerd.de go run web.go
+curl "localhost:8080/trigger
+```
+
+Emails will only be sent, if sendgrid environment is configured. Otherwise output to STDOUT.
+
+## Deploy on heroku
+
+```
+heroku apps:create -b https://github.com/kr/heroku-buildpack-go.git
+heroku addons:add sendgrid:starter
+heroku config:set EMAIL_RECIPIENT=recipient@example.com
+heroku config:set CHECK_URL=http://www.freenerd.de
+git push heroku master
+```
+
+The scans are triggered via a webhook. To e.g. set it up with a github repo, go to your repo settings -> webhooks and enter the url `herokuapp-url/trigger` where you find out `herokuapp-url` via `heroku info | grep "Web URL"`.
 
 ## TODO
 
+* Test suite
+* Better inline documentation
+* Split web.go into more modules
 * Homepage
 * Connect with Github (because this is only supposed to be for jekyll blogs)
 * Token for github callback (or better: automatic setup after connection)
