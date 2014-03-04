@@ -16,6 +16,13 @@ http://freenerd.de/: 403 http://bcn.musichackday.org/2012/
 * Install `go`
 * `go get github.com/freenerd/boulevardofbrokenlinks`
 
+## Tests
+
+```
+cd "$GOPATH/src/github.com/freenerd/boulevardofbrokenlinks"
+go test
+```
+
 ## Run
 
 ```
