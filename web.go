@@ -29,18 +29,11 @@ var (
 )
 
 func main() {
-	if os.Getenv("CHECK_URL") == "" {
-		log.Fatal("Fatal: set env var CHECK_URL")
-	}
-
 	// start aggregate routine
 	aggregates()
 
 	// start server that triggers checks
-	http.HandleFunc("/trigger", func(w http.ResponseWriter, _ *http.Request) {
-		fmt.Fprintf(w, "ok")
-		checkURL(os.Getenv("CHECK_URL"))
-	})
+	http.HandleFunc("/trigger", triggerHandler(checkURL))
 	var port string
 	if port = os.Getenv("PORT"); port == "" {
 		port = "8080"

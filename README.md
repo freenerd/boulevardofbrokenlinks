@@ -19,8 +19,9 @@ http://freenerd.de/: 403 http://bcn.musichackday.org/2012/
 ## Run
 
 ```
-CHECK_URL=http://www.freenerd.de go run web.go
-curl "localhost:8080/trigger
+cd "$GOPATH/src/github.com/freenerd/boulevardofbrokenlinks"
+CHECK_URL="http://www.freenerd.de" go run web.go handler.go
+curl "localhost:8080/trigger"
 ```
 
 Emails will only be sent, if sendgrid environment is configured. Otherwise output to STDOUT.
