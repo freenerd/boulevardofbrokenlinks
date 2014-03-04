@@ -41,8 +41,8 @@ The scans are triggered via a webhook. To e.g. set it up with a github repo, go 
 ## TODO
 
 * Test suite
-* Better inline documentation
 * Split web.go into more modules
+* Better inline documentation
 * Homepage
 * Connect with Github (because this is only supposed to be for jekyll blogs)
 * Token for github callback (or better: automatic setup after connection)

@@ -10,7 +10,10 @@ import (
 
 func TestTriggerHandler(t *testing.T) {
   expectedBody := "ok"
-  handler := triggerHandler(func(string) {})
+  triggerHandlerTriggered := false
+  handler := triggerHandler(func(string) {
+    triggerHandlerTriggered = true
+  })
   recorder := httptest.NewRecorder()
   url := fmt.Sprintf("http://example.com/trigger")
   req, err := http.NewRequest("POST", url, nil)
@@ -22,5 +25,9 @@ func TestTriggerHandler(t *testing.T) {
 
   if recorder.Body.String() != expectedBody {
     t.Errorf("expected: %s. got: %s", expectedBody, recorder.Body.String())
+  }
+
+  if !triggerHandlerTriggered {
+    t.Errorf("callback was not triggered")
   }
 }
