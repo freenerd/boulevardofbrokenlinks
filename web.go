@@ -12,17 +12,9 @@ import (
 	"code.google.com/p/go.net/html"
 )
 
-type Aggregates map[string][]down
-
-type down struct {
-	Origin string
-	Url    string
-	Status int
-}
-
-func (d down) String() string {
-	return fmt.Sprintf("%s: %d %s", d.Origin, d.Status, d.Url)
-}
+const (
+	SENDGRID_API_ENDPOINT = "https://api.sendgrid.com/api/mail.send.json"
+)
 
 var (
 	downs = make(chan down)
@@ -65,9 +57,7 @@ loop:
 		}
 	}
 
-	if os.Getenv("SENDGRID_USERNAME") != "" &&
-		os.Getenv("SENDGRID_PASSWORD") != "" &&
-		os.Getenv("EMAIL_RECIPIENT") != "" {
+	if MaySendEmail() {
 		emailAggregates(ds)
 	} else {
 		printAggregates(ds)
@@ -83,25 +73,9 @@ func printAggregates(ds Aggregates) {
 }
 
 func emailAggregates(ds Aggregates) {
+	sendEmail := sendEmailFunc(SENDGRID_API_ENDPOINT)
 	for origin, downs := range ds {
-		text := ""
-		for _, d := range downs {
-			text = fmt.Sprintf("%s\n%s", text, d.String())
-		}
-
-		v := url.Values{}
-		v.Add("api_user", os.Getenv("SENDGRID_USERNAME"))
-		v.Add("api_key", os.Getenv("SENDGRID_PASSWORD"))
-		v.Add("to", os.Getenv("EMAIL_RECIPIENT"))
-		v.Add("toname", os.Getenv("EMAIL_RECIPIENT"))
-		v.Add("subject", origin)
-		v.Add("text", text)
-		v.Add("from", os.Getenv("EMAIL_RECIPIENT"))
-
-		resp, err := http.PostForm("https://api.sendgrid.com/api/mail.send.json", v)
-		log.Println("Email sent")
-		log.Println(resp)
-		log.Println(err)
+		sendEmail(origin, downs)
 	}
 }
 
