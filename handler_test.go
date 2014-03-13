@@ -4,17 +4,18 @@ import (
 	"testing"
 
 	"fmt"
+  "time"
 	"net/http"
 	"net/http/httptest"
 )
 
 func TestTriggerHandler(t *testing.T) {
 	expectedBody := "ok"
-	triggerHandlerTriggered := false
+  downs := make(chan Down, 1)
 	handler := triggerHandler(func(string, chan Down) error {
-		triggerHandlerTriggered = true
+    downs <- Down{}
     return nil
-	}, make(chan Down))
+	}, downs)
 	recorder := httptest.NewRecorder()
 	url := fmt.Sprintf("http://example.com/trigger")
 	req, err := http.NewRequest("POST", url, nil)
@@ -28,7 +29,14 @@ func TestTriggerHandler(t *testing.T) {
 		t.Errorf("expected: %s. got: %s", expectedBody, recorder.Body.String())
 	}
 
-	if !triggerHandlerTriggered {
-		t.Errorf("callback was not triggered")
-	}
+  tick := time.Tick(3 * time.Second)
+  for {
+    select {
+    case <- tick:
+      t.Error("callback was not triggered in time")
+      return
+    case <- downs:
+      return
+    }
+  }
 }

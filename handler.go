@@ -19,10 +19,15 @@ func init() {
 
 func triggerHandler(fn func(string, chan Down) error, downs chan Down) http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
+    // respond
 		fmt.Fprintf(w, "ok")
-		err := fn(CHECK_URL, downs)
-    if err != nil {
-      log.Println(err)
-    }
+
+    // start processing
+    go func() {
+      err := fn(CHECK_URL, downs)
+      if err != nil {
+        log.Println(err)
+      }
+    }()
 	}
 }
