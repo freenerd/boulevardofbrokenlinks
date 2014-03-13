@@ -4,14 +4,14 @@ import (
 	"fmt"
 )
 
-type Aggregates map[string][]down
+type Aggregates map[string][]Down
 
-type down struct {
+type Down struct {
 	Origin string
 	Url    string
 	Status int
 }
 
-func (d down) String() string {
+func (d Down) String() string {
 	return fmt.Sprintf("%s: %d %s", d.Origin, d.Status, d.Url)
 }

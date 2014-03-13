@@ -11,9 +11,10 @@ import (
 func TestTriggerHandler(t *testing.T) {
 	expectedBody := "ok"
 	triggerHandlerTriggered := false
-	handler := triggerHandler(func(string) {
+	handler := triggerHandler(func(string, chan Down) error {
 		triggerHandlerTriggered = true
-	})
+    return nil
+	}, make(chan Down))
 	recorder := httptest.NewRecorder()
 	url := fmt.Sprintf("http://example.com/trigger")
 	req, err := http.NewRequest("POST", url, nil)

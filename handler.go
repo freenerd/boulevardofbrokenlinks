@@ -17,9 +17,12 @@ func init() {
 	}
 }
 
-func triggerHandler(fn func(string)) http.HandlerFunc {
+func triggerHandler(fn func(string, chan Down) error, downs chan Down) http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprintf(w, "ok")
-		fn(CHECK_URL)
+		err := fn(CHECK_URL, downs)
+    if err != nil {
+      log.Println(err)
+    }
 	}
 }

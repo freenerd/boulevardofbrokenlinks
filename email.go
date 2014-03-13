@@ -10,8 +10,8 @@ import (
 
 // returns a function that sends an email.
 // address is the address of the endpoint to send email to.
-func sendEmailFunc(address string) func(string, []down) (*http.Response, error) {
-	return func(origin string, downs []down) (*http.Response, error) {
+func sendEmailFunc(address string) func(string, []Down) (*http.Response, error) {
+	return func(origin string, downs []Down) (*http.Response, error) {
 		text := ""
 		for _, d := range downs {
 			text = fmt.Sprintf("%s\n%s", text, d.String())

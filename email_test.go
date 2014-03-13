@@ -63,7 +63,7 @@ func TestSendEmail(t *testing.T) {
 	defer dummy.Close()
 
 	f := sendEmailFunc("http://" + dummy.Listener.Addr().String())
-	downs := []down{
+	downs := []Down{
 		{
 			Origin: "origin",
 			Url:    "http://example.com/test",
