@@ -5,23 +5,28 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 )
 
 const (
 	SENDGRID_API_ENDPOINT = "https://api.sendgrid.com/api/mail.send.json"
 )
 
-var (
-	downs = make(chan Down)
-)
-
 func main() {
-	// start aggregate routine
-	aggregates()
+	checked := make(Checked)
+
+	// setup handling of checks
+	go func() {
+		// wait until a check is done, if so handle it
+		for {
+			select {
+			case downs := <-checked:
+				handleDowns(downs)
+			}
+		}
+	}()
 
 	// start server that triggers checks
-	http.HandleFunc("/trigger", triggerHandler(checkURL, downs))
+	http.HandleFunc("/trigger", triggerHandler(checkURL, checked))
 	var port string
 	if port = os.Getenv("PORT"); port == "" {
 		port = "8080"
@@ -30,23 +35,20 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
-func aggregates() {
-	go func() {
-		for {
-			collectAggregates()
-			time.Sleep(1 * time.Minute)
-		}
-	}()
-}
+func handleDowns(downs Downs) {
+	if len(downs) < 1 {
+		// nothing to do here
+		return
+	}
 
-func collectAggregates() {
-	ds := Aggregates{}
+	ds := []Down{}
 
+	// fetch all downs
 loop:
 	for {
 		select {
 		case d := <-downs:
-			ds[d.Origin] = append(ds[d.Origin], d)
+			ds = append(ds, d)
 		default:
 			// drained channel, continue with processing
 			break loop
@@ -54,23 +56,19 @@ loop:
 	}
 
 	if MaySendEmail() {
-		emailAggregates(ds)
+		emailDowns(ds)
 	} else {
-		printAggregates(ds)
+		printDowns(ds)
 	}
 }
 
-func printAggregates(ds Aggregates) {
-	for _, downs := range ds {
-		for _, d := range downs {
-			log.Println(d.String())
-		}
+func printDowns(ds []Down) {
+	for _, d := range ds {
+		log.Println(d.String())
 	}
 }
 
-func emailAggregates(ds Aggregates) {
+func emailDowns(ds []Down) {
 	sendEmail := sendEmailFunc(SENDGRID_API_ENDPOINT)
-	for origin, downs := range ds {
-		sendEmail(origin, downs)
-	}
+	sendEmail(ds[0].Origin, ds)
 }

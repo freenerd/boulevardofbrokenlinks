@@ -27,7 +27,8 @@ go test
 
 ```
 cd "$GOPATH/src/github.com/freenerd/boulevardofbrokenlinks"
-CHECK_URL="http://www.freenerd.de" go run web.go handler.go
+go install
+CHECK_URL="http://www.freenerd.de" boulevardofbrokenlinks
 curl "localhost:8080/trigger"
 ```
 

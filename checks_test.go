@@ -14,25 +14,32 @@ func serverWithStatus(status int) *httptest.Server {
 }
 
 func TestCheckUrl(t *testing.T) {
-	downChan := make(chan Down, 100)
+	checked := make(Checked, 100)
+	var downs Downs
 
 	// incorrect url
-	err := checkURL("incorrecturl", downChan)
+	err := checkURL("incorrecturl", checked)
 	if err == nil {
 		t.Error("expected incorrect url to throw error")
 	}
+	drainChan(checked)
 
 	// empty response
 	emptyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	dummy := httptest.NewServer(emptyHandler)
-	err = checkURL("http://"+dummy.Listener.Addr().String(), downChan)
+	err = checkURL("http://"+dummy.Listener.Addr().String(), checked)
 	if err != nil {
 		t.Error("expected correct URL to not throw error, got ", err)
 	}
-	if len(downChan) > 0 {
-		t.Errorf("expected empty response to not populate chan, got %d items", len(downChan))
+	if len(checked) != 1 {
+		t.Errorf("expected checked to have one element after executed checkURL, got %d elements", len(checked))
+		return // return since next call blocks
 	}
-	drainChan(downChan)
+	downs = <-checked
+	if len(downs) > 0 {
+		t.Errorf("expected empty response to not populate chan, got %d items", len(checked))
+	}
+	drainChan(checked)
 	dummy.Close()
 
 	// malformed HTML
@@ -40,14 +47,19 @@ func TestCheckUrl(t *testing.T) {
 		fmt.Fprint(w, "<<><><>>")
 	})
 	dummy = httptest.NewServer(malformedHTMLHandler)
-	err = checkURL("http://"+dummy.Listener.Addr().String(), downChan)
+	err = checkURL("http://"+dummy.Listener.Addr().String(), checked)
 	if err != nil {
 		t.Error("expected correct URL to not throw error, got ", err)
 	}
-	if len(downChan) > 0 {
-		t.Errorf("expected malformed response to not populate chan, got %d items", len(downChan))
+	if len(checked) != 1 {
+		t.Errorf("expected checked to have one element after executed checkURL, got %d elements", len(checked))
+		return // return since next call blocks
 	}
-	drainChan(downChan)
+	downs = <-checked
+	if len(downs) > 0 {
+		t.Errorf("expected malformed response to not populate chan, got %d items", len(downs))
+	}
+	drainChan(checked)
 	dummy.Close()
 
 	// correct responses
@@ -67,19 +79,24 @@ func TestCheckUrl(t *testing.T) {
 		fmt.Fprint(w, body)
 	})
 	dummy = httptest.NewServer(HTMLHandler)
-	err = checkURL("http://"+dummy.Listener.Addr().String(), downChan)
+	err = checkURL("http://"+dummy.Listener.Addr().String(), checked)
 	if err != nil {
 		t.Error("expected correct URL to not throw error, got ", err)
 	}
-	if len(downChan) != 4 {
-		t.Errorf("expected response to populate chan with 4 items, got %d items", len(downChan))
+	if len(checked) != 1 {
+		t.Errorf("expected checked to have one element after executed checkURL, got %d elements", len(checked))
+		return // return since next call blocks
+	}
+	downs = <-checked
+	if len(downs) != 4 {
+		t.Errorf("expected response to populate chan with 4 items, got %d items", len(checked))
 	}
 	for _, s := range servers {
 		s.Close()
 	}
 }
 
-func drainChan(c chan Down) {
+func drainChan(c Checked) {
 	for {
 		if len(c) == 0 {
 			return

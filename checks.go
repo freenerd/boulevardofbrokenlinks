@@ -9,7 +9,11 @@ import (
 	"code.google.com/p/go.net/html"
 )
 
-func checkURL(u string, downChan chan Down) error {
+// downloads a document from a url
+// parses it as HTML
+// walks the DOM and looks for links (<a href="">)
+// for each link, emits a go routine that checks its status code
+func checkURL(u string, checked Checked) error {
 	// parse incoming url
 	up, err := url.Parse(u)
 	if err != nil {
@@ -30,8 +34,8 @@ func checkURL(u string, downChan chan Down) error {
 		return err
 	}
 
-	// walk tree and check all <a href="">
-	var wg sync.WaitGroup
+	// walk tree and collect all <a href="">
+	hrefs := []string{}
 	tree.Walk(func(n *html.Node) {
 		if n.Type == html.ElementNode && n.Data == "a" {
 			for _, attr := range n.Attr {
@@ -48,22 +52,31 @@ func checkURL(u string, downChan chan Down) error {
 						href.Host = host
 					}
 
-					wg.Add(1)
-					go func(origin, url string) {
-						defer wg.Done()
-						checkHead(origin, url, downChan)
-					}(u, href.String())
+					hrefs = append(hrefs, href.String())
 				}
 			}
 		}
 	})
 
+	// check each href
+	downs := make(Downs, len(hrefs))
+	var wg sync.WaitGroup
+	for _, href := range hrefs {
+		wg.Add(1)
+		go func(u, href string) {
+			defer wg.Done()
+			checkHead(u, href, downs)
+		}(u, href)
+	}
+
+	// wait until all checks are done
 	wg.Wait()
+	checked <- downs
 	return nil
 }
 
-func checkHead(origin, url string, downChan chan Down) {
-	resp, err := http.Head(url)
+func checkHead(origin, href string, downs Downs) {
+	resp, err := http.Head(href)
 	if err != nil {
 		// assuming problems with network or malformed url
 		// ignore
@@ -73,12 +86,12 @@ func checkHead(origin, url string, downChan chan Down) {
 	if resp.StatusCode >= 400 {
 		// url is in trouble
 		// some sites like amazon or google app engine don't like HEAD, let's retry with GET
-		checkGet(origin, url, downChan)
+		checkGet(origin, href, downs)
 	}
 }
 
-func checkGet(origin, url string, downChan chan Down) {
-	resp, err := http.Get(url)
+func checkGet(origin, href string, downs Downs) {
+	resp, err := http.Get(href)
 	if err != nil {
 		// assuming problems with network or malformed url
 		// ignore
@@ -87,9 +100,9 @@ func checkGet(origin, url string, downChan chan Down) {
 
 	if resp.StatusCode >= 400 {
 		// url is down, down, down
-		downChan <- Down{
+		downs <- Down{
 			Origin: origin,
-			Url:    url,
+			Url:    href,
 			Status: resp.StatusCode,
 		}
 	}

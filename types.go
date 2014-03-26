@@ -4,8 +4,6 @@ import (
 	"fmt"
 )
 
-type Aggregates map[string][]Down
-
 type Down struct {
 	Origin string
 	Url    string
@@ -15,3 +13,6 @@ type Down struct {
 func (d Down) String() string {
 	return fmt.Sprintf("%s: %d %s", d.Origin, d.Status, d.Url)
 }
+
+type Downs chan Down
+type Checked chan Downs

@@ -17,14 +17,14 @@ func init() {
 	}
 }
 
-func triggerHandler(fn func(string, chan Down) error, downs chan Down) http.HandlerFunc {
+func triggerHandler(fn func(string, Checked) error, checked Checked) http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		// respond
 		fmt.Fprintf(w, "ok")
 
 		// start processing
 		go func() {
-			err := fn(CHECK_URL, downs)
+			err := fn(CHECK_URL, checked)
 			if err != nil {
 				log.Println(err)
 			}
