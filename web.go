@@ -11,6 +11,10 @@ const (
 	SENDGRID_API_ENDPOINT = "https://api.sendgrid.com/api/mail.send.json"
 )
 
+var (
+  db dbType
+)
+
 func main() {
 	// setup github connect flow
 	gh := githubClient{
@@ -23,7 +27,7 @@ func main() {
 	http.HandleFunc("/login/github/callback", gh.callbackHandler())
 
   // setup database connection
-  db := db{url: os.Getenv("DATABASE_URL")}
+  db = dbType{url: os.Getenv("DATABASE_URL")}
   if err := db.connect(); err != nil {
     log.Fatal(err)
   }

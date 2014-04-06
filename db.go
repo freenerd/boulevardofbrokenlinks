@@ -7,12 +7,12 @@ import (
   "log"
 )
 
-type db struct {
+type dbType struct {
   url string
   conn *sql.DB
 }
 
-func (db *db) connect() error {
+func (db *dbType) connect() error {
   conn, err := sql.Open("postgres", db.url)
   if err != nil {
     return err
@@ -24,7 +24,7 @@ func (db *db) connect() error {
 }
 
 // assure that the database is in correct state
-func (db *db) Check() {
+func (db *dbType) Check() {
   // check table
   var count int
   err := db.conn.QueryRow("select count(*) from pg_class where relname='users_github'").Scan(&count)
