@@ -12,9 +12,18 @@ const (
 )
 
 func main() {
-	checked := make(Checked)
+	// setup github connect flow
+	gh := githubClient{
+		client_id:     os.Getenv("GITHUB_CLIENT_ID"),
+		client_secret: os.Getenv("GITHUB_CLIENT_SECRET"),
+		redirect_uri:  os.Getenv("GITHUB_CALLBACK"),
+		scope:         "user:email",
+	}
+	http.HandleFunc("/login/github/authorize", gh.authorizeHandler())
+	http.HandleFunc("/login/github/callback", gh.callbackHandler())
 
 	// setup handling of checks
+	checked := make(Checked)
 	go func() {
 		// wait until a check is done, if so handle it
 		for {
