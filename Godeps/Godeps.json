@@ -11,6 +11,10 @@
 			"ImportPath": "code.google.com/p/go.net/html",
 			"Comment": "null-116",
 			"Rev": "89dbba2db2d45f337bb06f974ec45d3c426a5072"
+		},
+		{
+			"ImportPath": "github.com/lib/pq",
+			"Rev": "f08bb026e0d6b644cad24d850d13352cc47400c5"
 		}
 	]
 }

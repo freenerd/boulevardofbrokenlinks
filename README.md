@@ -16,6 +16,13 @@ http://freenerd.de/: 403 http://bcn.musichackday.org/2012/
 * Install `go`
 * `go get github.com/freenerd/boulevardofbrokenlinks`
 
+### Database Postgres
+
+Postgres is used as database backend
+
+* Install postgres, e.g. on Mac with [Homebrew](http://brew.sh/) via `brew install postgres`
+* Run, e.g. via `postgres -D /usr/local/pgsql/data`
+
 ## Tests
 
 ```

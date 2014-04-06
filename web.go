@@ -22,6 +22,13 @@ func main() {
 	http.HandleFunc("/login/github/authorize", gh.authorizeHandler())
 	http.HandleFunc("/login/github/callback", gh.callbackHandler())
 
+  // setup database connection
+  db := db{url: os.Getenv("DATABASE_URL")}
+  if err := db.connect(); err != nil {
+    log.Fatal(err)
+  }
+  db.Check()
+
 	// setup handling of checks
 	checked := make(Checked)
 	go func() {
