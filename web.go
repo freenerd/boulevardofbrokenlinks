@@ -12,26 +12,16 @@ const (
 )
 
 var (
-  db dbType
+	db dbType
 )
 
 func main() {
-	// setup github connect flow
-	gh := githubClient{
-		client_id:     os.Getenv("GITHUB_CLIENT_ID"),
-		client_secret: os.Getenv("GITHUB_CLIENT_SECRET"),
-		redirect_uri:  os.Getenv("GITHUB_CALLBACK"),
-		scope:         "user:email",
+	// setup database connection
+	db = dbType{url: os.Getenv("DATABASE_URL")}
+	if err := db.connect(); err != nil {
+		log.Fatal(err)
 	}
-	http.HandleFunc("/login/github/authorize", gh.authorizeHandler())
-	http.HandleFunc("/login/github/callback", gh.callbackHandler())
-
-  // setup database connection
-  db = dbType{url: os.Getenv("DATABASE_URL")}
-  if err := db.connect(); err != nil {
-    log.Fatal(err)
-  }
-  db.Check()
+	db.Check()
 
 	// setup handling of checks
 	checked := make(Checked)
@@ -45,12 +35,28 @@ func main() {
 		}
 	}()
 
-	// start server that triggers checks
+	// setup github connect flow
+	gh := githubClient{
+		client_id:     os.Getenv("GITHUB_CLIENT_ID"),
+		client_secret: os.Getenv("GITHUB_CLIENT_SECRET"),
+		redirect_uri:  os.Getenv("GITHUB_CALLBACK"),
+		scope:         "user:email",
+	}
+	http.HandleFunc("/login/github/authorize", gh.authorizeHandler())
+	http.HandleFunc("/login/github/callback", gh.callbackHandler())
+
+	// setup user-facing websites
+	http.HandleFunc("/", homepageHandler)
+	http.HandleFunc("/config", configGetHandler)
+
+	// setup trigger
 	http.HandleFunc("/trigger", triggerHandler(checkURL, checked))
 	var port string
 	if port = os.Getenv("PORT"); port == "" {
 		port = "8080"
 	}
+
+	// start server
 	fmt.Printf("listening on port %s ...\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
