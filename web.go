@@ -16,6 +16,10 @@ var (
 )
 
 func main() {
+  fmt.Println(newCheckToken())
+  fmt.Println(newCheckToken())
+  fmt.Println(newCheckToken())
+
 	// setup database connection
 	db = dbType{url: os.Getenv("DATABASE_URL")}
 	if err := db.connect(); err != nil {
